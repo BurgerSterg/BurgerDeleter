@@ -46,3 +46,14 @@ C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\DriverView
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\DriverView.g.cs
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\BurgerDe.E608FE5D.Up2Date
 C:\Users\jorge\Documents\BurgerDeleter\bin\Debug\net8.0-windows\Hardcodet.NotifyIcon.Wpf.dll
+C:\Users\jorge\Documents\BurgerDeleter\bin\Debug\net8.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\jorge\Documents\BurgerDeleter\bin\Debug\net8.0-windows\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\jorge\Documents\BurgerDeleter\bin\Debug\net8.0-windows\NuGet.Versioning.dll
+C:\Users\jorge\Documents\BurgerDeleter\bin\Debug\net8.0-windows\Velopack.dll
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\UpdatePromptDialog.baml
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\UpdatePromptDialog.g.cs
+C:\Users\jorge\AppData\Local\Temp\BDTest\BurgerDeleter.exe
+C:\Users\jorge\AppData\Local\Temp\BDTest\BurgerDeleter.deps.json
+C:\Users\jorge\AppData\Local\Temp\BDTest\BurgerDeleter.runtimeconfig.json
+C:\Users\jorge\AppData\Local\Temp\BDTest\BurgerDeleter.dll
+C:\Users\jorge\AppData\Local\Temp\BDTest\BurgerDeleter.pdb

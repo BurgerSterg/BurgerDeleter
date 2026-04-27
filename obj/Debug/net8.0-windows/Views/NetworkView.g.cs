@@ -212,7 +212,7 @@ namespace BurgerDeleter.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/BurgerDeleter;component/views/networkview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/BurgerDeleter;V1.2.0.0;component/views/networkview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\NetworkView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

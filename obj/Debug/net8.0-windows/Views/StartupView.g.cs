@@ -108,7 +108,7 @@ namespace BurgerDeleter.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/BurgerDeleter;component/views/startupview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/BurgerDeleter;V1.2.0.0;component/views/startupview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\StartupView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
