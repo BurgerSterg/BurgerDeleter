@@ -22,16 +22,14 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Publish
-        run: >
-          dotnet publish -c Release
-          -r win-x64
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:PublishTrimmed=false
-          -o ./publish
+        run: dotnet publish BurgerDeleter.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:PublishTrimmed=false -o ./publish
+
+      - name: Zip publish folder
+        shell: pwsh
+        run: Compress-Archive -Path ./publish/* -DestinationPath ./BurgerDeleter.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./publish/BurgerDeleter.exe
+          files: ./BurgerDeleter.zip
           generate_release_notes: true
