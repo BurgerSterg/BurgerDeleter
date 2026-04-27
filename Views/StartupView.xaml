@@ -1,0 +1,359 @@
+<Page x:Class="BurgerDeleter.Views.StartupView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource BackgroundBrush}"
+      Title="Startup Manager"
+      Loaded="Page_Loaded">
+
+  <Page.Resources>
+
+    <!-- ── Column header ── -->
+    <Style x:Key="ColHeader" TargetType="GridViewColumnHeader">
+      <Setter Property="Background"       Value="{DynamicResource SurfaceElevatedBrush}"/>
+      <Setter Property="Foreground"       Value="{DynamicResource TextSecondaryBrush}"/>
+      <Setter Property="BorderThickness"  Value="0,0,1,1"/>
+      <Setter Property="BorderBrush"      Value="{DynamicResource BorderBrush}"/>
+      <Setter Property="Padding"          Value="8,8"/>
+      <Setter Property="FontSize"         Value="11"/>
+      <Setter Property="FontWeight"       Value="Bold"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <!-- ── Row item ── -->
+    <Style x:Key="RowStyle" TargetType="ListViewItem">
+      <Setter Property="Background"               Value="Transparent"/>
+      <Setter Property="Foreground"               Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="BorderThickness"          Value="0"/>
+      <Setter Property="Padding"                  Value="4,6"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListViewItem">
+            <Border x:Name="rowBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderThickness="0,0,0,1"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    Padding="{TemplateBinding Padding}">
+              <GridViewRowPresenter
+                  Columns="{Binding Path=View.Columns,
+                            RelativeSource={RelativeSource AncestorType=ListView}}"
+                  Content="{TemplateBinding Content}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="rowBorder" Property="Background"
+                        Value="{DynamicResource SurfaceElevatedBrush}"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="rowBorder" Property="Background"
+                        Value="{DynamicResource SurfaceElevatedBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- ── Toggle-switch CheckBox ── -->
+    <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <Border x:Name="Track"
+                    Width="38" Height="20"
+                    CornerRadius="10"
+                    Background="#6B7280"
+                    SnapsToDevicePixels="True">
+              <Canvas>
+                <Ellipse x:Name="Thumb"
+                         Width="14" Height="14"
+                         Fill="White"
+                         Canvas.Left="3"
+                         Canvas.Top="3"/>
+              </Canvas>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Track" Property="Background"
+                        Value="{DynamicResource AccentBrush}"/>
+                <Setter TargetName="Thumb" Property="Canvas.Left" Value="21"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- ── Summary chip ── -->
+    <Style x:Key="ChipStyle" TargetType="Border">
+      <Setter Property="CornerRadius"   Value="20"/>
+      <Setter Property="Padding"        Value="14,6"/>
+      <Setter Property="Margin"         Value="0,0,10,0"/>
+      <Setter Property="Background"     Value="{DynamicResource SurfaceElevatedBrush}"/>
+      <Setter Property="BorderBrush"    Value="{DynamicResource BorderBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- ── Context menu ── -->
+    <ContextMenu x:Key="RowMenu" Style="{x:Null}">
+      <MenuItem Header="Enable"            Click="CtxEnable_Click"/>
+      <MenuItem Header="Disable"           Click="CtxDisable_Click"/>
+      <Separator/>
+      <MenuItem Header="Open file location" Click="CtxOpenLocation_Click"/>
+    </ContextMenu>
+
+  </Page.Resources>
+
+  <!-- ════ ROOT ════ -->
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>   <!-- header -->
+      <RowDefinition Height="Auto"/>   <!-- chips -->
+      <RowDefinition Height="*"/>      <!-- list -->
+      <RowDefinition Height="Auto"/>   <!-- status bar -->
+    </Grid.RowDefinitions>
+
+    <!-- ── Header ── -->
+    <Border Grid.Row="0"
+            Background="{DynamicResource SurfaceElevatedBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="24,20">
+      <StackPanel>
+        <TextBlock Text="🚀  Startup Manager"
+                   FontSize="22" FontWeight="Bold"
+                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+        <TextBlock Text="These programs launch every time Windows starts. Disable the ones you don't need."
+                   FontSize="12" Margin="0,4,0,0"
+                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+      </StackPanel>
+    </Border>
+
+    <!-- ── Summary chips ── -->
+    <Border Grid.Row="1"
+            Background="{DynamicResource BackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="24,12">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+        <!-- Total -->
+        <Border Style="{StaticResource ChipStyle}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock x:Name="ChipTotalCount"
+                       Text="0"
+                       FontSize="15" FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       Margin="0,0,6,0"/>
+            <TextBlock Text="total entries"
+                       FontSize="12"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <!-- High Impact -->
+        <Border Style="{StaticResource ChipStyle}"
+                Background="#2E1A1A" BorderBrush="#EF4444">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock x:Name="ChipHighCount"
+                       Text="0"
+                       FontSize="15" FontWeight="Bold"
+                       Foreground="#EF4444"
+                       Margin="0,0,6,0"/>
+            <TextBlock Text="high impact"
+                       FontSize="12"
+                       Foreground="#EF4444"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Disabled -->
+        <Border Style="{StaticResource ChipStyle}"
+                Background="{DynamicResource SurfaceElevatedBrush}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock x:Name="ChipDisabledCount"
+                       Text="0"
+                       FontSize="15" FontWeight="Bold"
+                       Foreground="#6B7280"
+                       Margin="0,0,6,0"/>
+            <TextBlock Text="disabled"
+                       FontSize="12"
+                       Foreground="#6B7280"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Scan button -->
+        <Button x:Name="ScanBtn"
+                Content="↻  Refresh"
+                Margin="16,0,0,0"
+                Padding="14,6"
+                FontSize="12" FontWeight="SemiBold"
+                Cursor="Hand"
+                Click="ScanBtn_Click">
+          <Button.Style>
+            <Style TargetType="Button">
+              <Setter Property="Background"      Value="{DynamicResource AccentBrush}"/>
+              <Setter Property="Foreground"      Value="White"/>
+              <Setter Property="BorderThickness" Value="0"/>
+              <Setter Property="Template">
+                <Setter.Value>
+                  <ControlTemplate TargetType="Button">
+                    <Border x:Name="b"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}">
+                      <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                      <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="b" Property="Background"
+                                Value="{DynamicResource AccentHoverBrush}"/>
+                      </Trigger>
+                      <Trigger Property="IsEnabled" Value="False">
+                        <Setter TargetName="b" Property="Opacity" Value="0.5"/>
+                      </Trigger>
+                    </ControlTemplate.Triggers>
+                  </ControlTemplate>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </Button.Style>
+        </Button>
+
+        <!-- Loading spinner text -->
+        <TextBlock x:Name="LoadingLabel"
+                   Text="⏳  Scanning startup entries…"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   VerticalAlignment="Center"
+                   Margin="16,0,0,0"
+                   Visibility="Collapsed"/>
+      </StackPanel>
+    </Border>
+
+    <!-- ── ListView ── -->
+    <ListView x:Name="EntriesList"
+              Grid.Row="2"
+              Background="Transparent"
+              BorderThickness="0"
+              ScrollViewer.VerticalScrollBarVisibility="Auto"
+              VirtualizingPanel.IsVirtualizing="True">
+
+      <ListView.ItemContainerStyle>
+        <Style TargetType="ListViewItem" BasedOn="{StaticResource RowStyle}">
+          <Setter Property="ContextMenu" Value="{StaticResource RowMenu}"/>
+        </Style>
+      </ListView.ItemContainerStyle>
+
+      <ListView.View>
+        <GridView ColumnHeaderContainerStyle="{StaticResource ColHeader}">
+
+          <!-- Toggle switch -->
+          <GridViewColumn Header="Enabled" Width="70">
+            <GridViewColumn.CellTemplate>
+              <DataTemplate>
+                <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                          IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                          HorizontalAlignment="Center"/>
+              </DataTemplate>
+            </GridViewColumn.CellTemplate>
+          </GridViewColumn>
+
+          <!-- Name -->
+          <GridViewColumn Header="Name" Width="190">
+            <GridViewColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Name}"
+                           FontWeight="SemiBold"
+                           FontSize="12"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </GridViewColumn.CellTemplate>
+          </GridViewColumn>
+
+          <!-- Publisher -->
+          <GridViewColumn Header="Publisher" Width="160">
+            <GridViewColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Publisher}"
+                           FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </GridViewColumn.CellTemplate>
+          </GridViewColumn>
+
+          <!-- Impact badge -->
+          <GridViewColumn Header="Impact" Width="90">
+            <GridViewColumn.CellTemplate>
+              <DataTemplate>
+                <Border x:Name="badge"
+                        CornerRadius="4"
+                        Padding="8,3"
+                        HorizontalAlignment="Left"
+                        Background="#6B7280">
+                  <TextBlock Text="{Binding Impact}"
+                             FontSize="11" FontWeight="Bold"
+                             Foreground="White"/>
+                </Border>
+                <DataTemplate.Triggers>
+                  <DataTrigger Binding="{Binding Impact}" Value="High">
+                    <Setter TargetName="badge" Property="Background" Value="#EF4444"/>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding Impact}" Value="Medium">
+                    <Setter TargetName="badge" Property="Background" Value="#F59E0B"/>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding Impact}" Value="Low">
+                    <Setter TargetName="badge" Property="Background" Value="#22C55E"/>
+                  </DataTrigger>
+                </DataTemplate.Triggers>
+              </DataTemplate>
+            </GridViewColumn.CellTemplate>
+          </GridViewColumn>
+
+          <!-- Location -->
+          <GridViewColumn Header="Location" Width="150">
+            <GridViewColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Location}"
+                           FontSize="11"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           TextTrimming="CharacterEllipsis"/>
+              </DataTemplate>
+            </GridViewColumn.CellTemplate>
+          </GridViewColumn>
+
+          <!-- Command (truncated) -->
+          <GridViewColumn Header="Command" Width="300">
+            <GridViewColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Command}"
+                           FontSize="11"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           ToolTip="{Binding Command}"/>
+              </DataTemplate>
+            </GridViewColumn.CellTemplate>
+          </GridViewColumn>
+
+        </GridView>
+      </ListView.View>
+    </ListView>
+
+    <!-- ── Status bar ── -->
+    <Border Grid.Row="3"
+            Background="{DynamicResource SurfaceElevatedBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="0,1,0,0"
+            Padding="24,10">
+      <TextBlock x:Name="StatusBar"
+                 Text="No startup entries loaded."
+                 FontSize="12"
+                 Foreground="{DynamicResource TextSecondaryBrush}"/>
+    </Border>
+
+  </Grid>
+</Page>

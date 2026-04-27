@@ -186,10 +186,6 @@
                                     Style="{StaticResource NavButtonStyle}"
                                     Content="🎮  Games"
                                     Click="NavGames_Click"/>
-                            <Button x:Name="NavLargeFiles"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Content="📁  Large Files"
-                                    Click="NavLargeFiles_Click"/>
                             <Button x:Name="NavRecommended"
                                     Style="{StaticResource NavButtonStyle}"
                                     Content="🎯  Recommended"
@@ -198,6 +194,26 @@
                                     Style="{StaticResource NavButtonStyle}"
                                     Content="🗑  Deep Uninstaller"
                                     Click="NavUninstaller_Click"/>
+                            <Button x:Name="NavOrganizer"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="📂  File Organizer"
+                                    Click="NavOrganizer_Click"/>
+                            <Button x:Name="NavMemory"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="⚡  Memory"
+                                    Click="NavMemory_Click"/>
+                            <Button x:Name="NavStartup"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="🚀  Startup"
+                                    Click="NavStartup_Click"/>
+                            <Button x:Name="NavNetwork"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="🌐  Network"
+                                    Click="NavNetwork_Click"/>
+                            <Button x:Name="NavDrivers"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="🔧  Drivers"
+                                    Click="NavDrivers_Click"/>
                         </StackPanel>
 
                         <!-- Bottom: Theme toggle -->

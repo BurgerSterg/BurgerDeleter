@@ -53,7 +53,6 @@ namespace BurgerDeleter.Services
                 local,
             };
 
-            // Skip known cache/system folders when scanning AppData\Local
             var skipNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 "Temp", "Microsoft", "Google", "Mozilla", "Packages",
@@ -74,11 +73,18 @@ namespace BurgerDeleter.Services
                     ct.ThrowIfCancellationRequested();
                     if (skipNames.Contains(appDir.Name)) continue;
 
+                    // Each app directory gets its own try/catch so one bad path
+                    // doesn't abort the whole scan.
                     try
                     {
-                        var newestAccess = appDir
-                            .EnumerateFiles("*.exe", SearchOption.AllDirectories)
-                            .Select(f => { try { return f.LastAccessTime; } catch { return DateTime.MinValue; } })
+                        if (ShouldSkipPath(appDir.FullName)) continue;
+
+                        var newestAccess = EnumerateFilesSafe(appDir.FullName, "*.exe", ct)
+                            .Select(f =>
+                            {
+                                try { return new FileInfo(f).LastAccessTime; }
+                                catch { return DateTime.MinValue; }
+                            })
                             .DefaultIfEmpty(DateTime.MinValue)
                             .Max();
 
@@ -86,24 +92,23 @@ namespace BurgerDeleter.Services
                             continue;
 
                         long size = GetDirectorySizeSafe(appDir.FullName, ct);
-                        if (size < 50 * 1_048_576L) continue; // skip < 50 MB
+                        if (size < 50 * 1_048_576L) continue;
 
                         int daysAgo = (int)(DateTime.Now - newestAccess).TotalDays;
 
                         var item = new DriveItem
                         {
-                            Name                  = appDir.Name,
-                            FullPath              = appDir.FullName,
-                            SizeBytes             = size,
-                            Category              = ItemCategory.Application,
-                            RecommendationReason  = $"Last opened {daysAgo} days ago — {FormatSize(size)}",
+                            Name                   = appDir.Name,
+                            FullPath               = appDir.FullName,
+                            SizeBytes              = size,
+                            Category               = ItemCategory.Application,
+                            RecommendationReason   = $"Last opened {daysAgo} days ago — {FormatSize(size)}",
                             RecommendationCategory = "Unused App",
                         };
                         SafetyClassifierService.Classify(item);
                         results.Add(item);
                     }
-                    catch (UnauthorizedAccessException) { }
-                    catch (IOException) { }
+                    catch { }   // skip any single app dir that throws
                 }
             }
 
@@ -114,22 +119,22 @@ namespace BurgerDeleter.Services
 
         private static List<DriveItem> FindLargeCacheFolders(CancellationToken ct)
         {
-            var results  = new List<DriveItem>();
-            var local    = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var roaming  = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            const long   minBytes = 100 * 1_048_576L; // 100 MB
+            var results = new List<DriveItem>();
+            var local   = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            const long minBytes = 100 * 1_048_576L;
 
             var candidates = new[]
             {
-                Path.GetTempPath(),                                                             // AppData\Local\Temp
-                Path.Combine(local,   "Microsoft", "Windows", "INetCache"),                    // IE / Edge legacy cache
+                Path.GetTempPath(),
+                Path.Combine(local,   "Microsoft", "Windows", "INetCache"),
                 Path.Combine(local,   "Google",    "Chrome",  "User Data", "Default", "Cache"),
                 Path.Combine(local,   "Microsoft", "Edge",    "User Data", "Default", "Cache"),
                 Path.Combine(local,   "pip",       "cache"),
                 Path.Combine(local,   "npm-cache"),
                 Path.Combine(local,   "Yarn",      "Cache"),
                 Path.Combine(roaming, "npm-cache"),
-                Path.Combine(local,   "Microsoft", "Windows", "Explorer"),                     // Thumbnail cache
+                Path.Combine(local,   "Microsoft", "Windows", "Explorer"),
             };
 
             foreach (var folder in candidates)
@@ -137,26 +142,28 @@ namespace BurgerDeleter.Services
                 ct.ThrowIfCancellationRequested();
                 if (!Directory.Exists(folder)) continue;
 
+                // Each candidate has its own guard + try/catch
                 try
                 {
+                    if (ShouldSkipPath(folder)) continue;
+
                     long size = GetDirectorySizeSafe(folder, ct);
                     if (size < minBytes) continue;
 
                     var di   = new DirectoryInfo(folder);
                     var item = new DriveItem
                     {
-                        Name                  = di.Name,
-                        FullPath              = folder,
-                        SizeBytes             = size,
-                        Category              = ItemCategory.Folder,
-                        RecommendationReason  = "Cache/temp files — safe to clear, will rebuild automatically.",
+                        Name                   = di.Name,
+                        FullPath               = folder,
+                        SizeBytes              = size,
+                        Category               = ItemCategory.Folder,
+                        RecommendationReason   = "Cache/temp files — safe to clear, will rebuild automatically.",
                         RecommendationCategory = "Cache",
                     };
                     SafetyClassifierService.Classify(item);
                     results.Add(item);
                 }
-                catch (UnauthorizedAccessException) { }
-                catch (IOException) { }
+                catch { }
             }
 
             return results;
@@ -171,58 +178,71 @@ namespace BurgerDeleter.Services
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
 
             if (!Directory.Exists(downloads)) return results;
+            if (ShouldSkipPath(downloads))    return results;
 
-            const long minBytes = 200 * 1_048_576L; // 200 MB
+            const long minBytes = 200 * 1_048_576L;
 
+            // Top-level files
             try
             {
-                var di = new DirectoryInfo(downloads);
-
-                // Files
-                foreach (var file in di.EnumerateFiles())
+                foreach (var file in Directory.EnumerateFiles(downloads))
                 {
                     ct.ThrowIfCancellationRequested();
-                    if (file.Length < minBytes) continue;
-
-                    int daysOld = (int)(DateTime.Now - file.LastWriteTime).TotalDays;
-                    var item    = new DriveItem
+                    try
                     {
-                        Name                  = file.Name,
-                        FullPath              = file.FullName,
-                        SizeBytes             = file.Length,
-                        Category              = ItemCategory.OtherFile,
-                        LastModified          = file.LastWriteTime,
-                        RecommendationReason  = $"Large file sitting in Downloads for {daysOld} days.",
-                        RecommendationCategory = "Downloads",
-                    };
-                    SafetyClassifierService.Classify(item);
-                    results.Add(item);
-                }
+                        var fi = new FileInfo(file);
+                        if (fi.Length < minBytes) continue;
 
-                // Subfolders
-                foreach (var subDir in di.EnumerateDirectories())
+                        int daysOld = (int)(DateTime.Now - fi.LastWriteTime).TotalDays;
+                        var item    = new DriveItem
+                        {
+                            Name                   = fi.Name,
+                            FullPath               = fi.FullName,
+                            SizeBytes              = fi.Length,
+                            Category               = ItemCategory.OtherFile,
+                            LastModified           = fi.LastWriteTime,
+                            RecommendationReason   = $"Large file sitting in Downloads for {daysOld} days.",
+                            RecommendationCategory = "Downloads",
+                        };
+                        SafetyClassifierService.Classify(item);
+                        results.Add(item);
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            // Top-level subdirectories (one try/catch per subdir)
+            IEnumerable<DirectoryInfo> subDirs;
+            try { subDirs = new DirectoryInfo(downloads).EnumerateDirectories(); }
+            catch { return results; }
+
+            foreach (var subDir in subDirs)
+            {
+                ct.ThrowIfCancellationRequested();
+                try
                 {
-                    ct.ThrowIfCancellationRequested();
+                    if (ShouldSkipPath(subDir.FullName)) continue;
+
                     long size = GetDirectorySizeSafe(subDir.FullName, ct);
                     if (size < minBytes) continue;
 
                     int daysOld = (int)(DateTime.Now - subDir.LastWriteTime).TotalDays;
                     var item    = new DriveItem
                     {
-                        Name                  = subDir.Name,
-                        FullPath              = subDir.FullName,
-                        SizeBytes             = size,
-                        Category              = ItemCategory.Folder,
-                        LastModified          = subDir.LastWriteTime,
-                        RecommendationReason  = $"Large file sitting in Downloads for {daysOld} days.",
+                        Name                   = subDir.Name,
+                        FullPath               = subDir.FullName,
+                        SizeBytes              = size,
+                        Category               = ItemCategory.Folder,
+                        LastModified           = subDir.LastWriteTime,
+                        RecommendationReason   = $"Large folder sitting in Downloads for {daysOld} days.",
                         RecommendationCategory = "Downloads",
                     };
                     SafetyClassifierService.Classify(item);
                     results.Add(item);
                 }
+                catch { }
             }
-            catch (UnauthorizedAccessException) { }
-            catch (IOException) { }
 
             return results;
         }
@@ -239,7 +259,6 @@ namespace BurgerDeleter.Services
                 @"C:\Steam", @"D:\Steam", @"E:\Steam", @"F:\Steam",
             };
 
-            // game folder name -> list of full paths across all libraries
             var byName = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var steamRoot in steamRoots)
@@ -262,11 +281,17 @@ namespace BurgerDeleter.Services
                     foreach (var gameDir in gameDirs)
                     {
                         ct.ThrowIfCancellationRequested();
-                        var name = Path.GetFileName(gameDir);
-                        if (!byName.TryGetValue(name, out var paths))
-                            byName[name] = paths = new List<string>();
-                        if (!paths.Contains(gameDir, StringComparer.OrdinalIgnoreCase))
-                            paths.Add(gameDir);
+                        try
+                        {
+                            if (ShouldSkipPath(gameDir)) continue;
+
+                            var name = Path.GetFileName(gameDir);
+                            if (!byName.TryGetValue(name, out var paths))
+                                byName[name] = paths = new List<string>();
+                            if (!paths.Contains(gameDir, StringComparer.OrdinalIgnoreCase))
+                                paths.Add(gameDir);
+                        }
+                        catch { }
                     }
                 }
             }
@@ -278,19 +303,23 @@ namespace BurgerDeleter.Services
                 foreach (var path in paths)
                 {
                     ct.ThrowIfCancellationRequested();
-                    long size = GetDirectorySizeSafe(path, ct);
-                    var item  = new DriveItem
+                    try
                     {
-                        Name                  = gameName,
-                        FullPath              = path,
-                        SizeBytes             = size,
-                        Category              = ItemCategory.Game,
-                        GameLauncher          = "Steam",
-                        RecommendationReason  = "Possible duplicate install detected.",
-                        RecommendationCategory = "Duplicate",
-                    };
-                    SafetyClassifierService.Classify(item);
-                    results.Add(item);
+                        long size = GetDirectorySizeSafe(path, ct);
+                        var item  = new DriveItem
+                        {
+                            Name                   = gameName,
+                            FullPath               = path,
+                            SizeBytes              = size,
+                            Category               = ItemCategory.Game,
+                            GameLauncher           = "Steam",
+                            RecommendationReason   = "Possible duplicate install detected.",
+                            RecommendationCategory = "Duplicate",
+                        };
+                        SafetyClassifierService.Classify(item);
+                        results.Add(item);
+                    }
+                    catch { }
                 }
             }
 
@@ -321,9 +350,10 @@ namespace BurgerDeleter.Services
         {
             var results = new List<DriveItem>();
             const string path = @"C:\Windows\SoftwareDistribution\Download";
-            const long minBytes = 500 * 1_048_576L; // 500 MB
+            const long minBytes = 500 * 1_048_576L;
 
             if (!Directory.Exists(path)) return results;
+            if (ShouldSkipPath(path))    return results;
 
             try
             {
@@ -332,18 +362,17 @@ namespace BurgerDeleter.Services
 
                 var item = new DriveItem
                 {
-                    Name                  = "SoftwareDistribution\\Download",
-                    FullPath              = path,
-                    SizeBytes             = size,
-                    Category              = ItemCategory.Folder,
-                    RecommendationReason  = "Old Windows update files — safe to clear after updates complete.",
+                    Name                   = @"SoftwareDistribution\Download",
+                    FullPath               = path,
+                    SizeBytes              = size,
+                    Category               = ItemCategory.Folder,
+                    RecommendationReason   = "Old Windows update files — safe to clear after updates complete.",
                     RecommendationCategory = "Update Cache",
                 };
                 SafetyClassifierService.Classify(item);
                 results.Add(item);
             }
-            catch (UnauthorizedAccessException) { }
-            catch (IOException) { }
+            catch { }
 
             return results;
         }
@@ -355,20 +384,15 @@ namespace BurgerDeleter.Services
             var results = new List<DriveItem>();
             var local   = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            const long minBytes = 50 * 1_048_576L; // 50 MB
+            const long minBytes = 50 * 1_048_576L;
 
             foreach (var root in new[] { local, roaming })
             {
                 if (!Directory.Exists(root)) continue;
+                if (ShouldSkipPath(root))    continue;
 
-                IEnumerable<string> files;
-                try
-                {
-                    files = Directory.EnumerateFiles(root, "*.log", SearchOption.AllDirectories);
-                }
-                catch { continue; }
-
-                foreach (var filePath in files)
+                // Use safe recursive enumeration to avoid following junctions
+                foreach (var filePath in EnumerateFilesSafe(root, "*.log", ct))
                 {
                     ct.ThrowIfCancellationRequested();
                     try
@@ -378,19 +402,18 @@ namespace BurgerDeleter.Services
 
                         var item = new DriveItem
                         {
-                            Name                  = fi.Name,
-                            FullPath              = filePath,
-                            SizeBytes             = fi.Length,
-                            Category              = ItemCategory.OtherFile,
-                            LastModified          = fi.LastWriteTime,
-                            RecommendationReason  = "Large log file — safe to delete.",
+                            Name                   = fi.Name,
+                            FullPath               = filePath,
+                            SizeBytes              = fi.Length,
+                            Category               = ItemCategory.OtherFile,
+                            LastModified           = fi.LastWriteTime,
+                            RecommendationReason   = "Large log file — safe to delete.",
                             RecommendationCategory = "Log File",
                         };
                         SafetyClassifierService.Classify(item);
                         results.Add(item);
                     }
-                    catch (UnauthorizedAccessException) { }
-                    catch (IOException) { }
+                    catch { }
                 }
             }
 
@@ -399,20 +422,127 @@ namespace BurgerDeleter.Services
 
         // ===== HELPERS =====
 
-        private static long GetDirectorySizeSafe(string path, CancellationToken ct)
+        /// <summary>
+        /// Returns true if the path is a junction point or symbolic link
+        /// (FileAttributes.ReparsePoint).  Returns true on any access error
+        /// so callers skip the path rather than crash.
+        /// </summary>
+        private static bool IsJunctionOrSymlink(string path)
         {
-            long total = 0;
             try
             {
-                foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                return new DirectoryInfo(path).Attributes.HasFlag(FileAttributes.ReparsePoint);
+            }
+            catch { return true; }
+        }
+
+        // Windows creates several AppData junctions that loop back on themselves.
+        // Enumerate them explicitly so they are never descended into.
+        private static readonly string[] _alwaysSkipSegments =
+        [
+            Path.Combine("AppData", "Local",   "Application Data"),
+            Path.Combine("AppData", "Local",   "Temporary Internet Files"),
+            Path.Combine("AppData", "Roaming", "Microsoft", "Windows", "Start Menu"),
+        ];
+
+        /// <summary>
+        /// Returns true when a directory should never be enumerated:
+        /// junction/symlink, path contains the word "junction", or matches
+        /// one of the well-known Windows looping AppData reparse points.
+        /// </summary>
+        private static bool ShouldSkipPath(string path)
+        {
+            try
+            {
+                if (path.Contains("junction", StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                foreach (var seg in _alwaysSkipSegments)
+                    if (path.Contains(seg, StringComparison.OrdinalIgnoreCase))
+                        return true;
+
+                return IsJunctionOrSymlink(path);
+            }
+            catch { return true; }
+        }
+
+        /// <summary>
+        /// Recursively enumerates files matching <paramref name="pattern"/> under
+        /// <paramref name="root"/>, skipping junction points and bad paths instead of
+        /// throwing or looping infinitely. Each directory access is individually guarded.
+        /// </summary>
+        private static IEnumerable<string> EnumerateFilesSafe(
+            string root, string pattern, CancellationToken ct)
+        {
+            if (ShouldSkipPath(root)) yield break;
+
+            // Files in this directory
+            IEnumerable<string> files = Enumerable.Empty<string>();
+            try { files = Directory.EnumerateFiles(root, pattern); }
+            catch { }
+
+            foreach (var f in files)
+            {
+                ct.ThrowIfCancellationRequested();
+                yield return f;
+            }
+
+            // Recurse into each subdirectory individually
+            IEnumerable<string> dirs = Enumerable.Empty<string>();
+            try { dirs = Directory.EnumerateDirectories(root); }
+            catch { }
+
+            foreach (var dir in dirs)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                bool skip = false;
+                try { skip = ShouldSkipPath(dir); } catch { skip = true; }
+                if (skip) continue;
+
+                foreach (var f in EnumerateFilesSafe(dir, pattern, ct))
+                    yield return f;
+            }
+        }
+
+        /// <summary>
+        /// Calculates the total size of a directory tree without following
+        /// junction points. Every individual subdirectory is guarded.
+        /// </summary>
+        private static long GetDirectorySizeSafe(string path, CancellationToken ct)
+        {
+            if (ShouldSkipPath(path)) return 0;
+
+            long total = 0;
+
+            // Files at this level
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(path))
                 {
                     ct.ThrowIfCancellationRequested();
                     try { total += new FileInfo(file).Length; }
                     catch { }
                 }
             }
-            catch (UnauthorizedAccessException) { }
-            catch (IOException) { }
+            catch { }
+
+            // Subdirectories — each one individually guarded
+            IEnumerable<string> subDirs = Enumerable.Empty<string>();
+            try { subDirs = Directory.EnumerateDirectories(path); }
+            catch { }
+
+            foreach (var sub in subDirs)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                bool skip = false;
+                try { skip = ShouldSkipPath(sub); } catch { skip = true; }
+                if (skip) continue;
+
+                total += GetDirectorySizeSafe(sub, ct);
+            }
+
             return total;
         }
 
