@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Principal;
 using System.Windows;
@@ -5,17 +6,22 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using BurgerDeleter.Views;
+using Hardcodet.Wpf.TaskbarNotification;
 
 namespace BurgerDeleter
 {
     public partial class MainWindow : Window
     {
-        private readonly HomeView _homeView = new();
-        private readonly ScanView _scanView = new();
-        private readonly GamesView _gamesView = new();
-        private readonly LargeFilesView _largeFilesView = new();
-        private readonly RecommendedView _recommendedView = new();
-        private readonly UninstallerView _uninstallerView = new();
+        private readonly HomeView          _homeView          = new();
+        private readonly ScanView          _scanView          = new();
+        private readonly GamesView         _gamesView         = new();
+        private readonly RecommendedView   _recommendedView   = new();
+        private readonly UninstallerView   _uninstallerView   = new();
+        private readonly FileOrganizerView _fileOrganizerView = new();
+        private readonly MemoryView        _memoryView        = new();
+        private readonly StartupView       _startupView       = new();
+        private readonly NetworkView       _networkView       = new();
+        private readonly DriverView        _driverView        = new();
 
         public MainWindow()
         {
@@ -26,6 +32,15 @@ namespace BurgerDeleter
 
             _homeView.ScanRequested += () => NavigateTo(NavScan, _scanView);
             AppEvents.DriveStatsChanged += () => Dispatcher.Invoke(LoadDriveInfo);
+
+            // Broadcast to all subscribers whenever the window appears / disappears
+            IsVisibleChanged += (_, e) =>
+            {
+                if ((bool)e.NewValue)
+                    AppEvents.RaiseAppVisible();
+                else
+                    AppEvents.RaiseAppHidden();
+            };
         }
 
         // ===== NAVIGATION =====
@@ -51,14 +66,26 @@ namespace BurgerDeleter
         private void NavGames_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavGames, _gamesView);
 
-        private void NavLargeFiles_Click(object sender, RoutedEventArgs e)
-            => NavigateTo(NavLargeFiles, _largeFilesView);
-
         private void NavRecommended_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavRecommended, _recommendedView);
 
         private void NavUninstaller_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavUninstaller, _uninstallerView);
+
+        private void NavOrganizer_Click(object sender, RoutedEventArgs e)
+            => NavigateTo(NavOrganizer, _fileOrganizerView);
+
+        private void NavMemory_Click(object sender, RoutedEventArgs e)
+            => NavigateTo(NavMemory, _memoryView);
+
+        private void NavStartup_Click(object sender, RoutedEventArgs e)
+            => NavigateTo(NavStartup, _startupView);
+
+        private void NavNetwork_Click(object sender, RoutedEventArgs e)
+            => NavigateTo(NavNetwork, _networkView);
+
+        private void NavDrivers_Click(object sender, RoutedEventArgs e)
+            => NavigateTo(NavDrivers, _driverView);
 
         // ===== THEME =====
 
@@ -146,6 +173,38 @@ namespace BurgerDeleter
                 MessageBox.Show($"Could not relaunch as administrator:\n{ex.Message}",
                     "Elevation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // ===== TRAY / CLOSE BEHAVIOUR =====
+
+        private static bool _hasShownTrayNotice;
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (!App.AllowClose)
+            {
+                // Hide to tray instead of closing
+                e.Cancel = true;
+                Hide();
+
+                if (!_hasShownTrayNotice)
+                {
+                    _hasShownTrayNotice = true;
+                    ((App)Application.Current).TrayIcon?.ShowBalloonTip(
+                        "BurgerDeleter",
+                        "BurgerDeleter is still running in the background.",
+                        BalloonIcon.Info);
+                }
+                return;
+            }
+            base.OnClosing(e);
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+                Hide();
+            base.OnStateChanged(e);
         }
 
         // ===== CUSTOM WINDOW CHROME =====

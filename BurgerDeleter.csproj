@@ -10,4 +10,11 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>BurgerDeleter.Program</StartupObject>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icon.ico" />
+  </ItemGroup>
 </Project>

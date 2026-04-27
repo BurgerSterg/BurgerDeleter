@@ -22,6 +22,8 @@ namespace BurgerDeleter.Views
             LoadCurrentFree();
 
             AppEvents.DriveStatsChanged += () => Dispatcher.Invoke(LoadCurrentFree);
+            // Cancel any running scan the moment the window hides to tray
+            AppEvents.AppHidden += () => _cts?.Cancel();
         }
 
         private void LoadCurrentFree()
@@ -190,6 +192,14 @@ namespace BurgerDeleter.Views
                     }
 
                     _scanResults.Remove(item);
+
+                    ResultsList.ItemsSource = null;
+                    ResultsList.ItemsSource = _scanResults;
+
+                    LoadCurrentFree();
+                    UpdateSelectionLabels();
+                    AppEvents.RaiseDriveStatsChanged();
+
                     done++;
                 }
                 catch (Exception ex)
@@ -198,12 +208,6 @@ namespace BurgerDeleter.Views
                         "Delete Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
-
-            ResultsList.ItemsSource = null;
-            ResultsList.ItemsSource = _scanResults;
-
-            LoadCurrentFree();
-            UpdateSelectionLabels();
 
             DeletionProgressBar.Value = 100;
             DeletionPercentLabel.Text = "100%";

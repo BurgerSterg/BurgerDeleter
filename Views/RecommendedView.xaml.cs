@@ -21,6 +21,7 @@ namespace BurgerDeleter.Views
             LoadCurrentFree();
 
             AppEvents.DriveStatsChanged += () => Dispatcher.Invoke(LoadCurrentFree);
+            AppEvents.AppHidden += () => _cts?.Cancel();
         }
 
         private void LoadCurrentFree()

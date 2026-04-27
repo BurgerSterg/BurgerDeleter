@@ -8,7 +8,6 @@ C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Themes\DarkTheme
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Themes\LightTheme.baml
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\GamesView.baml
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\HomeView.baml
-C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\LargeFilesView.baml
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\RecommendedView.baml
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\ScanView.baml
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\UninstallerView.baml
@@ -16,7 +15,6 @@ C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\App.baml
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\MainWindow.g.cs
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\GamesView.g.cs
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\HomeView.g.cs
-C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\LargeFilesView.g.cs
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\RecommendedView.g.cs
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\ScanView.g.cs
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\UninstallerView.g.cs
@@ -32,3 +30,19 @@ C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\refint\BurgerDel
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\BurgerDeleter.pdb
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\BurgerDeleter.genruntimeconfig.cache
 C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\ref\BurgerDeleter.dll
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\FileOrganizerView.baml
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\FileOrganizerView.g.cs
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\BurgerDeleter.sourcelink.json
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\MemoryView.baml
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\MemoryView.g.cs
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\StartupView.baml
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\StartupView.g.cs
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\NetworkView.baml
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\NetworkView.g.cs
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\BurgerDeleter.csproj.AssemblyReference.cache
+C:\Users\jorge\Documents\BurgerDeleter\bin\Debug\net8.0-windows\System.Management.dll
+C:\Users\jorge\Documents\BurgerDeleter\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Management.dll
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\DriverView.baml
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\Views\DriverView.g.cs
+C:\Users\jorge\Documents\BurgerDeleter\obj\Debug\net8.0-windows\BurgerDe.E608FE5D.Up2Date
+C:\Users\jorge\Documents\BurgerDeleter\bin\Debug\net8.0-windows\Hardcodet.NotifyIcon.Wpf.dll
