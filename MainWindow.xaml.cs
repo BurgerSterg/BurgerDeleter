@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using BurgerDeleter.Services;
 using BurgerDeleter.Views;
 using Hardcodet.Wpf.TaskbarNotification;
 
@@ -86,6 +87,26 @@ namespace BurgerDeleter
 
         private void NavDrivers_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavDrivers, _driverView);
+
+        // ===== AUTO-UPDATE CHECK =====
+
+        protected override void OnContentRendered(EventArgs e)
+        {
+            base.OnContentRendered(e);
+
+            // Fire-and-forget: check GitHub for a newer release without blocking the UI.
+            _ = Task.Run(async () =>
+            {
+                var info = await UpdateService.CheckForUpdatesAsync();
+                if (info is null) return;
+
+                Dispatcher.Invoke(() =>
+                {
+                    var dialog = new UpdatePromptDialog(info) { Owner = this };
+                    dialog.ShowDialog();
+                });
+            });
+        }
 
         // ===== THEME =====
 

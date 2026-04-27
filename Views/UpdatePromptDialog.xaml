@@ -1,0 +1,182 @@
+<Window x:Class="BurgerDeleter.Views.UpdatePromptDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="420" Height="230"
+        MinWidth="420" MinHeight="230"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceElevatedBrush}">
+
+  <!-- Outer border gives the window its visible frame -->
+  <Border BorderBrush="{DynamicResource BorderBrush}"
+          BorderThickness="1">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="42"/>   <!-- title bar (draggable) -->
+        <RowDefinition Height="*"/>    <!-- content -->
+        <RowDefinition Height="Auto"/> <!-- download progress (hidden until active) -->
+        <RowDefinition Height="60"/>   <!-- buttons -->
+      </Grid.RowDefinitions>
+
+      <!-- ── Title bar ── -->
+      <Border Grid.Row="0"
+              Background="{DynamicResource BackgroundBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
+              BorderThickness="0,0,0,1"
+              MouseLeftButtonDown="TitleBar_MouseDown">
+        <Grid Margin="16,0">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="🔄" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBlock Text="Update Available"
+                       FontSize="13" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+          <!-- Close (Later) via X button -->
+          <Button HorizontalAlignment="Right"
+                  Content="✕"
+                  FontSize="13"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Foreground="{DynamicResource TextSecondaryBrush}"
+                  Cursor="Hand"
+                  VerticalAlignment="Center"
+                  Click="Later_Click">
+            <Button.Template>
+              <ControlTemplate TargetType="Button">
+                <Border x:Name="b" Background="{TemplateBinding Background}"
+                        CornerRadius="4" Padding="8,4">
+                  <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                  <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="b" Property="Background" Value="#44EF4444"/>
+                  </Trigger>
+                </ControlTemplate.Triggers>
+              </ControlTemplate>
+            </Button.Template>
+          </Button>
+        </Grid>
+      </Border>
+
+      <!-- ── Version info ── -->
+      <StackPanel Grid.Row="1" Margin="20,16,20,8" VerticalAlignment="Center">
+        <TextBlock x:Name="CurrentVersionText"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   Margin="0,0,0,4"/>
+        <TextBlock x:Name="NewVersionText"
+                   FontSize="14" FontWeight="SemiBold"
+                   Foreground="{DynamicResource AccentBrush}"/>
+        <TextBlock Text="A new version of BurgerDeleter is ready to install."
+                   FontSize="11" Margin="0,6,0,0"
+                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+      </StackPanel>
+
+      <!-- ── Download progress (hidden until downloading) ── -->
+      <Border x:Name="DownloadSection"
+              Grid.Row="2"
+              Visibility="Collapsed"
+              Margin="20,0,20,10">
+        <StackPanel>
+          <ProgressBar x:Name="DownloadProgress"
+                       Height="6" Value="0" Minimum="0" Maximum="100"
+                       Background="{DynamicResource BorderBrush}"
+                       Foreground="{DynamicResource AccentBrush}"
+                       Margin="0,0,0,5">
+            <ProgressBar.Template>
+              <ControlTemplate TargetType="ProgressBar">
+                <Border Background="{TemplateBinding Background}"
+                        CornerRadius="3" Height="{TemplateBinding Height}">
+                  <Border x:Name="PART_Track" CornerRadius="3">
+                    <Border x:Name="PART_Indicator"
+                            Background="{TemplateBinding Foreground}"
+                            CornerRadius="3"
+                            HorizontalAlignment="Left"/>
+                  </Border>
+                </Border>
+              </ControlTemplate>
+            </ProgressBar.Template>
+          </ProgressBar>
+          <TextBlock x:Name="DownloadStatusText"
+                     Text="Preparing download…"
+                     FontSize="11"
+                     Foreground="{DynamicResource TextSecondaryBrush}"/>
+        </StackPanel>
+      </Border>
+
+      <!-- ── Action buttons ── -->
+      <Grid Grid.Row="3" Margin="20,0,20,0" VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="8"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Update Now -->
+        <Button x:Name="UpdateNowBtn"
+                Grid.Column="0"
+                Content="⬇  Update Now"
+                FontSize="13" FontWeight="SemiBold"
+                Background="{DynamicResource AccentBrush}"
+                Foreground="White"
+                BorderThickness="0"
+                Cursor="Hand"
+                Height="36"
+                Click="UpdateNow_Click">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border x:Name="b" Background="{TemplateBinding Background}"
+                      CornerRadius="8" Padding="0">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                  <Setter TargetName="b" Property="Opacity" Value="0.88"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                  <Setter TargetName="b" Property="Opacity" Value="0.45"/>
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+
+        <!-- Later -->
+        <Button x:Name="LaterBtn"
+                Grid.Column="2"
+                Content="Later"
+                FontSize="12"
+                Background="{DynamicResource SurfaceElevatedBrush}"
+                Foreground="{DynamicResource TextSecondaryBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                Cursor="Hand"
+                Padding="20,0"
+                Height="36"
+                Click="Later_Click">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border x:Name="b"
+                      Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="{TemplateBinding BorderThickness}"
+                      CornerRadius="8"
+                      Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                  <Setter TargetName="b" Property="Opacity" Value="0.75"/>
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+      </Grid>
+
+    </Grid>
+  </Border>
+</Window>

@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Hardcodet.Wpf.TaskbarNotification;
+using Velopack;
 
 namespace BurgerDeleter
 {
@@ -27,6 +28,10 @@ namespace BurgerDeleter
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Must be the very first call — Velopack handles install/update/uninstall
+            // hooks and may call Environment.Exit() for lifecycle events.
+            VelopackApp.Build().Run();
+
             DispatcherUnhandledException += (s, ex) =>
             {
                 // Walk the full InnerException chain to capture the root cause
