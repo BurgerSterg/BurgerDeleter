@@ -21,8 +21,31 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Extract version from tag
+        id: ver
+        shell: pwsh
+        run: |
+          # github.ref_name is e.g. "v1.2" — strip the leading 'v' then normalise to 4 parts
+          $tag = "${{ github.ref_name }}".TrimStart('v')
+          $parts = $tag.Split('.')
+          while ($parts.Count -lt 4) { $parts += '0' }
+          $version = ($parts[0..3]) -join '.'
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Release version: $version"
+
       - name: Publish
-        run: dotnet publish BurgerDeleter.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o ./publish
+        run: >
+          dotnet publish BurgerDeleter.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:PublishTrimmed=false
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:AssemblyVersion=${{ steps.ver.outputs.VERSION }}
+          -p:FileVersion=${{ steps.ver.outputs.VERSION }}
+          -o ./publish
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1

@@ -9,10 +9,14 @@
     <RootNamespace>BurgerDeleter</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>BurgerDeleter.Program</StartupObject>
+    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+    <PackageReference Include="Velopack" Version="0.0.915" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icon.ico" />
