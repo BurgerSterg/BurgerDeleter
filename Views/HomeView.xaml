@@ -1,0 +1,321 @@
+<Page x:Class="BurgerDeleter.Views.HomeView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource BackgroundBrush}"
+      Title="Home">
+
+    <Page.Resources>
+        <!-- Primary action button -->
+        <Style x:Key="ScanButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="40,16"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background"
+                                        Value="{DynamicResource AccentHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Step card -->
+        <Style x:Key="StepCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="40,32">
+        <StackPanel MaxWidth="800">
+
+            <!-- ===== HEADER ===== -->
+            <StackPanel Margin="0,0,0,8">
+                <TextBlock Text="Welcome to BurgerDeleter"
+                           FontSize="28" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="Find and remove everything hogging your storage. Nothing left behind."
+                           FontSize="14"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           Margin="0,6,0,0"/>
+            </StackPanel>
+
+            <!-- ===== STORAGE SNAPSHOT ===== -->
+            <Border Style="{StaticResource StepCardStyle}" Margin="0,20,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Used -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock x:Name="UsedSpaceLabel"
+                                   Text="-- GB"
+                                   FontSize="26" FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="Used Space"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="12"/>
+                    </StackPanel>
+
+                    <!-- Free -->
+                    <StackPanel Grid.Column="1">
+                        <TextBlock x:Name="FreeSpaceLabel"
+                                   Text="-- GB"
+                                   FontSize="26" FontWeight="Bold"
+                                   Foreground="{DynamicResource SuccessBrush}"/>
+                        <TextBlock Text="Free Space"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="12"/>
+                    </StackPanel>
+
+                    <!-- Total -->
+                    <StackPanel Grid.Column="2">
+                        <TextBlock x:Name="TotalSpaceLabel"
+                                   Text="-- GB"
+                                   FontSize="26" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Total Drive"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="12"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ===== BIG SCAN BUTTON ===== -->
+            <Border Margin="0,24,0,0"
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="10"
+                    Padding="24">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Ready to reclaim your storage?"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,6"/>
+                    <TextBlock Text="BurgerDeleter will scan every corner of your drive and show you exactly what's taking up space."
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               Margin="0,0,0,20"/>
+                    <Button x:Name="ScanNowButton"
+                            Style="{StaticResource ScanButtonStyle}"
+                            Content="🔍  Scan Drive Now"
+                            Click="ScanNowButton_Click"
+                            HorizontalAlignment="Center"/>
+                    <TextBlock Text="Scan takes 30 seconds to 2 minutes depending on drive size."
+                               FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,12,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ===== HOW IT WORKS ===== -->
+            <TextBlock Text="HOW IT WORKS"
+                       FontSize="11" FontWeight="Bold"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       Margin="0,32,0,12"/>
+
+            <!-- Step cards -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+
+                <!-- Step 1 -->
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource StepCardStyle}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Border Background="{DynamicResource AccentBrush}"
+                                    CornerRadius="20" Width="28" Height="28"
+                                    Margin="0,0,10,0">
+                                <TextBlock Text="1" Foreground="White" FontWeight="Bold"
+                                           FontSize="13" HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Scan Your Drive"
+                                       FontSize="14" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="13">
+                            Click Scan Drive Now and BurgerDeleter will analyze every folder on your drive,
+                            including games from Steam, Epic, and other launchers — things Windows normally hides.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Step 2 -->
+                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource StepCardStyle}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Border Background="{DynamicResource AccentBrush}"
+                                    CornerRadius="20" Width="28" Height="28"
+                                    Margin="0,0,10,0">
+                                <TextBlock Text="2" Foreground="White" FontWeight="Bold"
+                                           FontSize="13" HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Review What's Found"
+                                       FontSize="14" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="13">
+                            Everything is listed largest to smallest with exact sizes in GB or MB.
+                            Games, large video files, leftover app folders — all visible in one place.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Step 3 -->
+                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource StepCardStyle}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Border Background="{DynamicResource AccentBrush}"
+                                    CornerRadius="20" Width="28" Height="28"
+                                    Margin="0,0,10,0">
+                                <TextBlock Text="3" Foreground="White" FontWeight="Bold"
+                                           FontSize="13" HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Select What to Delete"
+                                       FontSize="14" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="13">
+                            Check the boxes next to anything you want gone. The total space you'll recover
+                            updates in real time as you make selections.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Step 4 -->
+                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource StepCardStyle}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Border Background="{DynamicResource AccentBrush}"
+                                    CornerRadius="20" Width="28" Height="28"
+                                    Margin="0,0,10,0">
+                                <TextBlock Text="4" Foreground="White" FontWeight="Bold"
+                                           FontSize="13" HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Confirm and Delete"
+                                       FontSize="14" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   FontSize="13">
+                            See the before and after — exact GB freed — then confirm.
+                            For programs, BurgerDeleter runs a deep uninstall that removes
+                            registry entries, leftover files, services, and scheduled tasks.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ===== QUICK ACTIONS ===== -->
+            <TextBlock Text="QUICK ACTIONS"
+                       FontSize="11" FontWeight="Bold"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       Margin="0,32,0,12"/>
+
+            <WrapPanel>
+                <Border Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="8"
+                        Padding="16,12" Margin="0,0,12,12"
+                        Cursor="Hand"
+                        MouseLeftButtonDown="QuickAction_Games">
+                    <StackPanel>
+                        <TextBlock Text="🎮  Scan Games"
+                                   FontWeight="Bold" FontSize="13"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Steam, Epic, GOG, EA App"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="8"
+                        Padding="16,12" Margin="0,0,12,12"
+                        Cursor="Hand"
+                        MouseLeftButtonDown="QuickAction_LargeFiles">
+                    <StackPanel>
+                        <TextBlock Text="📹  Find Large Files"
+                                   FontWeight="Bold" FontSize="13"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Videos, ISOs, archives"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="8"
+                        Padding="16,12" Margin="0,0,12,12"
+                        Cursor="Hand"
+                        MouseLeftButtonDown="QuickAction_Uninstaller">
+                    <StackPanel>
+                        <TextBlock Text="🗑  Deep Uninstall"
+                                   FontWeight="Bold" FontSize="13"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Remove every trace"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </WrapPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
