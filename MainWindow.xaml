@@ -1,0 +1,248 @@
+<Window x:Class="BurgerDeleter.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="BurgerDeleter" Height="780" Width="1200"
+        MinHeight="600" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}"
+        WindowStyle="None"
+        AllowsTransparency="True">
+
+    <Window.Resources>
+        <!-- Nav Button Style -->
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Margin="4,2">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background"
+                                        Value="{DynamicResource SidebarSelectedBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Active Nav Button Style -->
+        <Style x:Key="NavButtonActiveStyle" TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource SidebarSelectedBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
+        <!-- Window control button -->
+        <Style x:Key="WinControlStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource SurfaceElevatedBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource WinControlStyle}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#C42B1C"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <!-- Drop shadow outer border -->
+    <Border Background="{DynamicResource BackgroundBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="46"/>
+                <!-- Title bar -->
+                <RowDefinition Height="*"/>
+                <!-- Content -->
+            </Grid.RowDefinitions>
+
+            <!-- ===== TITLE BAR ===== -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource SidebarBrush}"
+                    CornerRadius="10,10,0,0"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220"/>
+                        <!-- Logo area -->
+                        <ColumnDefinition Width="*"/>
+                        <!-- Drag area -->
+                        <ColumnDefinition Width="Auto"/>
+                        <!-- Controls -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- App name in title bar -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal"
+                                VerticalAlignment="Center" Margin="16,0">
+                        <TextBlock Text="🗑" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="BurgerDeleter"
+                                   FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Admin status badge (sits in the drag area, left-aligned) -->
+                    <Border x:Name="AdminBadge"
+                            Grid.Column="1"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Margin="12,0,0,0"
+                            CornerRadius="4"
+                            Padding="6,3"
+                            Cursor="Hand"
+                            MouseLeftButtonUp="AdminBadge_Click">
+                        <Border.ToolTip>
+                            <ToolTip x:Name="AdminBadgeTooltip" Content=""/>
+                        </Border.ToolTip>
+                        <TextBlock x:Name="AdminBadgeText"
+                                   FontSize="11" FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+
+                    <!-- Window controls -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                VerticalAlignment="Center" Margin="0,0,8,0">
+                        <Button Style="{StaticResource WinControlStyle}" Content="—"
+                                Click="MinimizeButton_Click" ToolTip="Minimize"/>
+                        <Button Style="{StaticResource WinControlStyle}" Content="⬜"
+                                Click="MaximizeButton_Click" ToolTip="Maximize"/>
+                        <Button Style="{StaticResource CloseButtonStyle}" Content="✕"
+                                Click="CloseButton_Click" ToolTip="Close"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ===== MAIN LAYOUT ===== -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>
+                    <!-- Sidebar -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Content -->
+                </Grid.ColumnDefinitions>
+
+                <!-- ===== SIDEBAR ===== -->
+                <Border Grid.Column="0"
+                        Background="{DynamicResource SidebarBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,0,1,0">
+                    <DockPanel>
+
+                        <!-- Nav buttons -->
+                        <StackPanel DockPanel.Dock="Top" Margin="8,16,8,0">
+                            <TextBlock Text="NAVIGATION"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="10" FontWeight="Bold"
+                                       Margin="20,0,0,8"/>
+
+                            <Button x:Name="NavHome"
+                                    Style="{StaticResource NavButtonActiveStyle}"
+                                    Content="🏠  Home"
+                                    Click="NavHome_Click"/>
+                            <Button x:Name="NavScan"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="💾  Drive Scanner"
+                                    Click="NavScan_Click"/>
+                            <Button x:Name="NavGames"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="🎮  Games"
+                                    Click="NavGames_Click"/>
+                            <Button x:Name="NavLargeFiles"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="📁  Large Files"
+                                    Click="NavLargeFiles_Click"/>
+                            <Button x:Name="NavRecommended"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="🎯  Recommended"
+                                    Click="NavRecommended_Click"/>
+                            <Button x:Name="NavUninstaller"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="🗑  Deep Uninstaller"
+                                    Click="NavUninstaller_Click"/>
+                        </StackPanel>
+
+                        <!-- Bottom: Theme toggle -->
+                        <StackPanel DockPanel.Dock="Bottom" Margin="8,0,8,16">
+                            <Separator Background="{DynamicResource BorderBrush}" Margin="8,8"/>
+                            <Button Style="{StaticResource NavButtonStyle}"
+                                    x:Name="ThemeToggleBtn"
+                                    Content="{DynamicResource ThemeToggleLabel}"
+                                    Click="ThemeToggle_Click"/>
+                        </StackPanel>
+
+                        <!-- Drive info in sidebar -->
+                        <Border Margin="12,16" VerticalAlignment="Top"
+                                Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="8"
+                                Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="Drive C:"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="11" FontWeight="Bold"/>
+                                <ProgressBar x:Name="DriveProgressBar"
+                                             Height="6" Margin="0,8,0,4"
+                                             Background="{DynamicResource BorderBrush}"
+                                             Foreground="{DynamicResource AccentBrush}"
+                                             BorderThickness="0"
+                                             Maximum="100" Value="0"/>
+                                <TextBlock x:Name="DriveUsageLabel"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           FontSize="10">
+                                    <Run Text="Scanning..."/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </DockPanel>
+                </Border>
+
+                <!-- ===== CONTENT AREA ===== -->
+                <Border Grid.Column="1"
+                        Background="{DynamicResource BackgroundBrush}">
+                    <Frame x:Name="MainFrame"
+                           NavigationUIVisibility="Hidden"
+                           Background="Transparent"/>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
