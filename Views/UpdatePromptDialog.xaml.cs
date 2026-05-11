@@ -92,10 +92,9 @@ namespace BurgerDeleter.Views
                     }
                 }
 
-                DownloadStatusText.Text = "Download complete — launching installer…";
+                DownloadStatusText.Text = "Download complete — finishing update…";
 
-                // Launch the new exe, then exit so the installer can replace the binary.
-                Process.Start(new ProcessStartInfo(tempPath) { UseShellExecute = true });
+                UpdateService.StartSelfUpdateReplacerBatch();
                 Application.Current.Shutdown();
             }
             catch (Exception ex)
