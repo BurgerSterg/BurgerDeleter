@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BurgerDeleter")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ef862af41e0c0d0c5e1cde94b1e477a7170b5189")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4bb4ee378e66b07a77c61811f981ce23b1c28c66")]
 [assembly: System.Reflection.AssemblyProductAttribute("BurgerDeleter")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BurgerDeleter")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.2.0.0")]

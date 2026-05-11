@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
@@ -94,6 +96,36 @@ namespace BurgerDeleter.Services
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Writes <c>%TEMP%\burger_update.bat</c>, which waits for this process to exit,
+        /// moves <c>%TEMP%\BurgerDeleter_update.exe</c> over the running exe, then starts it.
+        /// Launch via <see cref="Process.Start(ProcessStartInfo)"/>; the app should exit immediately after.
+        /// </summary>
+        public static void StartSelfUpdateReplacerBatch()
+        {
+            string targetExe = Process.GetCurrentProcess().MainModule?.FileName
+                ?? throw new InvalidOperationException("Cannot resolve current executable path.");
+
+            string batchPath = Path.Combine(Path.GetTempPath(), "burger_update.bat");
+            File.WriteAllLines(
+                batchPath,
+                new[]
+                {
+                    "@echo off",
+                    "timeout /t 2 /nobreak > nul",
+                    @$"move /y ""%TEMP%\BurgerDeleter_update.exe"" ""{targetExe}""",
+                    @$"start """" ""{targetExe}""",
+                    @"del ""%~f0""",
+                });
+
+            Process.Start(
+                new ProcessStartInfo("cmd.exe", $"/c \"{batchPath}\"")
+                {
+                    CreateNoWindow  = true,
+                    UseShellExecute = false,
+                });
         }
     }
 }
