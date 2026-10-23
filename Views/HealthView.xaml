@@ -1,0 +1,406 @@
+<Page x:Class="BurgerDeleter.Views.HealthView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource BackgroundBrush}"
+      Title="PC Health"
+      Loaded="Page_Loaded"
+      Unloaded="Page_Unloaded">
+
+    <Page.Resources>
+        <!-- Neon accents read well on both the dark and light themes -->
+        <Color x:Key="NeonCyan">#22D3EE</Color>
+        <Color x:Key="NeonViolet">#A78BFA</Color>
+        <SolidColorBrush x:Key="NeonCyanBrush" Color="{StaticResource NeonCyan}"/>
+        <SolidColorBrush x:Key="NeonVioletBrush" Color="{StaticResource NeonViolet}"/>
+
+        <LinearGradientBrush x:Key="NeonGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{StaticResource NeonCyan}" Offset="0"/>
+            <GradientStop Color="{StaticResource NeonViolet}" Offset="1"/>
+        </LinearGradientBrush>
+
+        <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
+
+        <Style x:Key="PanelCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="18,16"/>
+        </Style>
+
+        <Style x:Key="HudLabel" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource MonoFont}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+        </Style>
+
+        <Style x:Key="NeonButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource NeonCyanBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource MonoFont}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="Transparent"
+                                BorderBrush="{StaticResource NeonCyanBrush}" BorderThickness="1"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#2222D3EE"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="b" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Solid, rounded bars (the stock template renders as segmented blocks) -->
+        <Style TargetType="ProgressBar">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border x:Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="2"/>
+                            <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}"
+                                    CornerRadius="2" HorizontalAlignment="Left"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Storyboard x:Key="ScanPulse" RepeatBehavior="Forever" AutoReverse="True">
+            <DoubleAnimation Storyboard.TargetName="StatusText"
+                             Storyboard.TargetProperty="Opacity"
+                             From="1" To="0.3" Duration="0:0:0.7"/>
+        </Storyboard>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,28,32,32">
+
+            <!-- ===== HEADER ===== -->
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="// SYSTEM DIAGNOSTICS" Style="{StaticResource HudLabel}"
+                               Foreground="{StaticResource NeonCyanBrush}"/>
+                    <TextBlock Text="PC Health"
+                               FontSize="26" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Margin="0,2,0,0"/>
+                    <TextBlock x:Name="StatusText"
+                               Text="Initializing…"
+                               FontFamily="{StaticResource MonoFont}"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button x:Name="RescanBtn"
+                        Grid.Column="1"
+                        Style="{StaticResource NeonButton}"
+                        Content="⟳  RE-SCAN"
+                        VerticalAlignment="Center"
+                        Click="Rescan_Click"/>
+            </Grid>
+
+            <!-- ===== TOP ROW: score + telemetry ===== -->
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Score ring -->
+                <Border Grid.Column="0" Style="{StaticResource PanelCard}">
+                    <StackPanel>
+                        <TextBlock Text="HEALTH INDEX" Style="{StaticResource HudLabel}"/>
+
+                        <Grid Width="200" Height="200" Margin="0,14,0,10" HorizontalAlignment="Center">
+                            <!-- tick ring -->
+                            <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1"
+                                     StrokeDashArray="1 5" Margin="0"/>
+                            <!-- track -->
+                            <Ellipse Stroke="{DynamicResource SurfaceElevatedBrush}" StrokeThickness="10" Margin="12"/>
+                            <!-- value arc (geometry set in code) -->
+                            <Path x:Name="ScoreArc"
+                                  Stroke="{StaticResource NeonGradient}"
+                                  StrokeThickness="10"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round">
+                                <Path.Effect>
+                                    <DropShadowEffect x:Name="ArcGlow" Color="{StaticResource NeonCyan}"
+                                                      BlurRadius="18" ShadowDepth="0" Opacity="0.8"/>
+                                </Path.Effect>
+                            </Path>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock x:Name="ScoreText"
+                                           Text="--"
+                                           FontFamily="{StaticResource MonoFont}"
+                                           FontSize="54" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="GradeText"
+                                           Text="SCANNING"
+                                           Style="{StaticResource HudLabel}"
+                                           FontSize="11"
+                                           Foreground="{StaticResource NeonCyanBrush}"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Category sub-scores -->
+                        <ItemsControl x:Name="CategoryList" Margin="0,6,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="96"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="34"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource HudLabel}"
+                                                   VerticalAlignment="Center"/>
+                                        <ProgressBar Grid.Column="1" Height="4" Maximum="100"
+                                                     Value="{Binding Score, Mode=OneWay}"
+                                                     Foreground="{Binding Brush}"
+                                                     Background="{DynamicResource SurfaceElevatedBrush}"
+                                                     BorderThickness="0"
+                                                     VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding Score}"
+                                                   FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Telemetry -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- CPU -->
+                        <Border Grid.Column="0" Style="{StaticResource PanelCard}">
+                            <StackPanel>
+                                <Grid>
+                                    <TextBlock Text="CPU LOAD" Style="{StaticResource HudLabel}"/>
+                                    <TextBlock Text="● LIVE" Style="{StaticResource HudLabel}"
+                                               Foreground="{StaticResource NeonCyanBrush}"
+                                               HorizontalAlignment="Right"/>
+                                </Grid>
+                                <TextBlock x:Name="CpuText" Text="--%"
+                                           FontFamily="{StaticResource MonoFont}"
+                                           FontSize="30" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Margin="0,4,0,6"/>
+                                <Canvas x:Name="CpuChart" Height="56" ClipToBounds="True"
+                                        SizeChanged="Chart_SizeChanged"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- RAM -->
+                        <Border Grid.Column="2" Style="{StaticResource PanelCard}">
+                            <StackPanel>
+                                <Grid>
+                                    <TextBlock Text="MEMORY" Style="{StaticResource HudLabel}"/>
+                                    <TextBlock x:Name="RamDetailText" Text="" Style="{StaticResource HudLabel}"
+                                               HorizontalAlignment="Right"/>
+                                </Grid>
+                                <TextBlock x:Name="RamText" Text="--%"
+                                           FontFamily="{StaticResource MonoFont}"
+                                           FontSize="30" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Margin="0,4,0,6"/>
+                                <Canvas x:Name="RamChart" Height="56" ClipToBounds="True"
+                                        SizeChanged="Chart_SizeChanged"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- System info + disks -->
+                    <Border Grid.Row="2" Style="{StaticResource PanelCard}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="HARDWARE" Style="{StaticResource HudLabel}" Margin="0,0,0,10"/>
+                                <ItemsControl x:Name="SpecList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="56"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Key}" Style="{StaticResource HudLabel}"
+                                                           VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                                           FontSize="12" TextWrapping="Wrap"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="STORAGE" Style="{StaticResource HudLabel}" Margin="0,0,0,10"/>
+                                <ItemsControl x:Name="DiskList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,0,0,10">
+                                                <Grid>
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontFamily="{StaticResource MonoFont}"
+                                                               FontSize="12" FontWeight="Bold"
+                                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                    <TextBlock Text="{Binding Summary}"
+                                                               FontSize="11"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <ProgressBar Height="4" Margin="0,5,0,0" Maximum="100"
+                                                             Value="{Binding UsedPct, Mode=OneWay}"
+                                                             Foreground="{StaticResource NeonGradient}"
+                                                             Background="{DynamicResource SurfaceElevatedBrush}"
+                                                             BorderThickness="0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- ===== RECOMMENDATIONS ===== -->
+            <Grid Margin="0,8,0,10">
+                <TextBlock x:Name="RecoHeader" Text="RECOMMENDATIONS" Style="{StaticResource HudLabel}"
+                           FontSize="11" VerticalAlignment="Center"/>
+                <TextBlock x:Name="FixResultText"
+                           FontSize="11"
+                           Foreground="{DynamicResource SuccessBrush}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            </Grid>
+
+            <Border x:Name="AllClearCard" Style="{StaticResource PanelCard}" Visibility="Collapsed"
+                    BorderBrush="{DynamicResource SuccessBrush}" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="✓" FontSize="22" Foreground="{DynamicResource SuccessBrush}"
+                               VerticalAlignment="Center" Margin="0,0,14,0"/>
+                    <StackPanel>
+                        <TextBlock Text="All systems nominal" FontSize="15" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Nothing needs your attention right now."
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <ItemsControl x:Name="IssueList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="10"
+                                Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="{Binding SeverityColor}" CornerRadius="10,0,0,10"/>
+                                <StackPanel Grid.Column="1" Margin="16,12">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                        <TextBlock Text="{Binding SeverityLabel}"
+                                                   FontFamily="{StaticResource MonoFont}"
+                                                   FontSize="10" FontWeight="Bold"
+                                                   Foreground="{Binding SeverityColor}"/>
+                                        <TextBlock Text="  ·  " FontSize="10"
+                                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding CategoryLabel}" Style="{StaticResource HudLabel}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding Detail}" FontSize="12" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <Button Grid.Column="2"
+                                        Style="{StaticResource NeonButton}"
+                                        Content="{Binding FixLabel}"
+                                        Tag="{Binding}"
+                                        Margin="0,0,16,0"
+                                        VerticalAlignment="Center"
+                                        Click="Fix_Click">
+                                    <Button.Visibility>
+                                        <Binding Path="HasFix">
+                                            <Binding.Converter>
+                                                <BooleanToVisibilityConverter/>
+                                            </Binding.Converter>
+                                        </Binding>
+                                    </Button.Visibility>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Passed checks -->
+            <TextBlock x:Name="PassedHeader" Text="PASSED CHECKS" Style="{StaticResource HudLabel}"
+                       FontSize="11" Margin="0,16,0,10"/>
+            <ItemsControl x:Name="PassedList">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="12" Padding="10,4" Margin="0,0,8,8">
+                            <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+                                <Run Text="✓ " Foreground="{DynamicResource SuccessBrush}"/>
+                                <Run Text="{Binding Mode=OneWay}"/>
+                            </TextBlock>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

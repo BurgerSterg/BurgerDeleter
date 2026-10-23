@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
@@ -52,7 +51,8 @@ namespace BurgerDeleter.Views
 
             try
             {
-                var tempPath = Path.Combine(Path.GetTempPath(), "BurgerDeleter_update.exe");
+                Directory.CreateDirectory(UpdateService.InstallDirectory);
+                var downloadPath = UpdateService.PendingUpdateExePath;
 
                 using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
                 http.DefaultRequestHeaders.Add("User-Agent", "BurgerDeleter");
@@ -66,7 +66,7 @@ namespace BurgerDeleter.Views
                 await using var networkStream =
                     await response.Content.ReadAsStreamAsync();
                 await using var fileStream =
-                    new FileStream(tempPath, FileMode.Create, FileAccess.Write,
+                    new FileStream(downloadPath, FileMode.Create, FileAccess.Write,
                                    FileShare.None, 65536, useAsync: true);
 
                 var  buffer     = new byte[65536];
@@ -94,7 +94,7 @@ namespace BurgerDeleter.Views
 
                 DownloadStatusText.Text = "Download complete — finishing update…";
 
-                UpdateService.StartSelfUpdateReplacerBatch();
+                UpdateService.LaunchPendingUpdateAndExit();
                 Application.Current.Shutdown();
             }
             catch (Exception ex)

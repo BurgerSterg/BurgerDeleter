@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.IO;
 using System.Security.Principal;
 using System.Windows;
+using BurgerDeleter.Services;
 
 namespace BurgerDeleter.Helpers
 {
@@ -32,9 +34,13 @@ namespace BurgerDeleter.Helpers
 
             try
             {
-                var exe = Process.GetCurrentProcess().MainModule?.FileName
+                var exe = UpdateService.CanonicalExecutablePath;
+                if (!File.Exists(exe))
+                {
+                    exe = Process.GetCurrentProcess().MainModule?.FileName
                           ?? Environment.ProcessPath
                           ?? throw new InvalidOperationException("Cannot determine executable path.");
+                }
 
                 Process.Start(new ProcessStartInfo
                 {
@@ -43,6 +49,7 @@ namespace BurgerDeleter.Helpers
                     Verb            = "runas"
                 });
 
+                App.AllowClose = true; // otherwise MainWindow.OnClosing just hides us to the tray
                 Application.Current.Shutdown();
             }
             catch (Exception ex)

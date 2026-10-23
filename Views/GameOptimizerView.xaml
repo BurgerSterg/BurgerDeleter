@@ -1,0 +1,297 @@
+<Page x:Class="BurgerDeleter.Views.GameOptimizerView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource BackgroundBrush}"
+      Title="Game Optimizer">
+
+    <Page.Resources>
+        <Storyboard x:Key="StatusPulse" RepeatBehavior="Forever" AutoReverse="True">
+            <DoubleAnimation Storyboard.TargetName="OptimizedPulseBorder"
+                             Storyboard.TargetProperty="Opacity"
+                             From="1" To="0.55" Duration="0:0:1.1"/>
+        </Storyboard>
+
+        <Style x:Key="OptimizePrimaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="32,14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background"
+                                        Value="{DynamicResource AccentHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="b" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ToggleCardBorder" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,28,32,32" MaxWidth="920">
+
+            <!-- Persisted session warning -->
+            <Border x:Name="SessionBanner"
+                    Visibility="Collapsed"
+                    Background="{DynamicResource SurfaceElevatedBrush}"
+                    BorderBrush="{DynamicResource WarningBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14,12"
+                    Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="SessionBannerText"
+                               TextWrapping="Wrap"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontSize="13"/>
+                    <Button Grid.Column="1"
+                            Content="Restore"
+                            Padding="14,6"
+                            Margin="12,0,0,0"
+                            Click="SessionBannerRestore_Click"/>
+                </Grid>
+            </Border>
+
+            <TextBlock Text="Game Optimizer"
+                       FontSize="26" FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <TextBlock Text="Tune Windows for a single play session. Restore when finished."
+                       FontSize="13"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="0,6,0,20"/>
+
+            <!-- ── Idle state ── -->
+            <StackPanel x:Name="IdlePanel">
+
+                <TextBlock Text="Game"
+                           FontSize="11" FontWeight="Bold"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           Margin="0,0,0,6"/>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="GameCombo"
+                              FontSize="14"
+                              Padding="8,6"
+                              DisplayMemberPath="Display"/>
+                    <Button x:Name="DetectRunningBtn"
+                            Grid.Column="1"
+                            Content="🔍  Detect running game"
+                            Padding="14,6"
+                            Margin="10,0,0,0"
+                            Cursor="Hand"
+                            Click="DetectRunning_Click"/>
+                </Grid>
+                <TextBlock x:Name="GameHintText"
+                           Text="Loading installed games…"
+                           FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           Margin="0,0,0,20"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Performance column -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Performance"
+                                   FontSize="12" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,0,0,10"/>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleKillBg" Content="Kill background processes"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="TogglePriority" Content="Set game priority to High"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="TogglePower" Content="Switch to Ultimate Performance power plan"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleGameBar" Content="Disable Xbox Game Bar background recording"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleGameMode" Content="Enable Windows Game Mode"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleScheduler"
+                                      Content="Prioritize games in CPU/GPU scheduler (Admin)"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleGpuPref"
+                                      Content="Run game on high-performance GPU (game must be running)"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleMouseAccel" Content="Disable mouse acceleration"
+                                      IsChecked="False"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleFlushRam" Content="Flush RAM before launch"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Network column -->
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Network"
+                                   FontSize="12" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,0,0,10"/>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleFlushDns" Content="Flush DNS"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleNagle" Content="Disable Nagle's Algorithm"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource ToggleCardBorder}">
+                            <CheckBox x:Name="ToggleNetPerf"
+                                      Content="Set network adapter TCP stack (max performance)"
+                                      IsChecked="True"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock x:Name="StepStatusText"
+                           Margin="0,12,0,0"
+                           FontSize="12"
+                           Foreground="{DynamicResource TextMutedBrush}"/>
+
+                <Button x:Name="OptimizeNowBtn"
+                        Style="{StaticResource OptimizePrimaryBtn}"
+                        Content="Optimize Now"
+                        HorizontalAlignment="Left"
+                        Margin="0,20,0,0"
+                        Click="OptimizeNow_Click"/>
+
+                <TextBlock Text="Restore Defaults"
+                           FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           Margin="0,10,0,0"
+                           Cursor="Hand"
+                           MouseLeftButtonUp="RestoreDefaults_MouseLeftButtonUp"/>
+            </StackPanel>
+
+            <!-- ── Active state ── -->
+            <StackPanel x:Name="ActivePanel" Visibility="Collapsed">
+                <Border x:Name="OptimizedPulseBorder"
+                        Background="#15251A"
+                        BorderBrush="{DynamicResource SuccessBrush}"
+                        BorderThickness="2"
+                        CornerRadius="10"
+                        Padding="20,16"
+                        Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock x:Name="OptimizedTitleText"
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="{DynamicResource SuccessBrush}"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock Text="Session optimizations are active."
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="Applied"
+                           FontSize="12" FontWeight="Bold"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           Margin="0,0,0,8"/>
+
+                <ItemsControl x:Name="AppliedStepsList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="✓"
+                                           Foreground="{DynamicResource SuccessBrush}"
+                                           FontWeight="Bold"
+                                           Margin="0,0,10,0"/>
+                                <TextBlock Text="{Binding}"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           FontSize="13"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Button x:Name="RestoreResetBtn"
+                        Content="Restore &amp; Reset"
+                        Margin="0,24,0,0"
+                        HorizontalAlignment="Left"
+                        Padding="24,12"
+                        FontWeight="Bold"
+                        Foreground="White"
+                        Cursor="Hand"
+                        Click="RestoreReset_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="rb" Background="{DynamicResource DangerBrush}"
+                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="rb" Property="Opacity" Value="0.9"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

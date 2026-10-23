@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Windows;
+using BurgerDeleter.Services;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -26,11 +27,21 @@ namespace BurgerDeleter
         /// </summary>
         public static bool AllowClose { get; internal set; }
 
+        /// <summary>
+        /// True if <c>optimizer_snapshot.json</c> was present when the app started.
+        /// </summary>
+        public static bool OptimizerSnapshotPendingAtLaunch { get; internal set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             // Must be the very first call — Velopack handles install/update/uninstall
             // hooks and may call Environment.Exit() for lifecycle events.
             VelopackApp.Build().Run();
+
+            RelaunchFromStandardInstallIfNeeded();
+
+            OptimizerSnapshotPendingAtLaunch =
+                File.Exists(GameOptimizerService.SnapshotPath);
 
             DispatcherUnhandledException += (s, ex) =>
             {
@@ -72,6 +83,40 @@ namespace BurgerDeleter
             // Creating TaskbarIcon inside XAML resources (before DoStartup completes)
             // causes a TargetInvocationException on .NET 8.
             BuildTrayIcon();
+        }
+
+        /// <summary>
+        /// First run (or portable copy): move to <c>%LocalAppData%\BurgerDeleter\</c> so updates always target one path.
+        /// Skipped under <c>dotnet run</c> (<c>bin\Debug</c> / <c>bin\Release</c>). On failure, startup continues from the current exe.
+        /// </summary>
+        private static void RelaunchFromStandardInstallIfNeeded()
+        {
+            try
+            {
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory.Replace('/', '\\');
+                if (baseDir.Contains(@"\bin\Debug\", StringComparison.OrdinalIgnoreCase) ||
+                    baseDir.Contains(@"\bin\Release\", StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                var target = UpdateService.InstalledExePath;
+                var current = Process.GetCurrentProcess().MainModule?.FileName;
+                if (string.IsNullOrEmpty(current)) return;
+
+                if (string.Equals(
+                        Path.GetFullPath(current),
+                        Path.GetFullPath(target),
+                        StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                Directory.CreateDirectory(UpdateService.InstallDirectory);
+                File.Copy(current, target, overwrite: true);
+                Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
+                Environment.Exit(0);
+            }
+            catch
+            {
+                // Keep running from the current location (e.g. copy/start failed).
+            }
         }
 
         protected override void OnExit(ExitEventArgs e)

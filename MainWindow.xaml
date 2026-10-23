@@ -14,7 +14,7 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Padding" Value="16,10"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -129,7 +129,7 @@
                             CornerRadius="4"
                             Padding="6,3"
                             Cursor="Hand"
-                            MouseLeftButtonUp="AdminBadge_Click">
+                            MouseLeftButtonDown="AdminBadge_Click">
                         <Border.ToolTip>
                             <ToolTip x:Name="AdminBadgeTooltip" Content=""/>
                         </Border.ToolTip>
@@ -169,10 +169,24 @@
 
                         <!-- Nav buttons -->
                         <StackPanel DockPanel.Dock="Top" Margin="8,16,8,0">
-                            <TextBlock Text="NAVIGATION"
+                            <TextBlock Text="OVERVIEW"
                                        Foreground="{DynamicResource TextMutedBrush}"
                                        FontSize="10" FontWeight="Bold"
                                        Margin="20,0,0,8"/>
+
+                            <Button x:Name="NavHealth"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="📊  PC Health"
+                                    Click="NavHealth_Click"/>
+                            <Button x:Name="NavSecurity"
+                                    Style="{StaticResource NavButtonStyle}"
+                                    Content="🛡  Security Scan"
+                                    Click="NavSecurity_Click"/>
+
+                            <TextBlock Text="STORAGE"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="10" FontWeight="Bold"
+                                       Margin="20,16,0,8"/>
 
                             <Button x:Name="NavHome"
                                     Style="{StaticResource NavButtonActiveStyle}"
@@ -186,18 +200,16 @@
                                     Style="{StaticResource NavButtonStyle}"
                                     Content="🎮  Games"
                                     Click="NavGames_Click"/>
-                            <Button x:Name="NavRecommended"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Content="🎯  Recommended"
-                                    Click="NavRecommended_Click"/>
                             <Button x:Name="NavUninstaller"
                                     Style="{StaticResource NavButtonStyle}"
                                     Content="🗑  Deep Uninstaller"
                                     Click="NavUninstaller_Click"/>
-                            <Button x:Name="NavOrganizer"
-                                    Style="{StaticResource NavButtonStyle}"
-                                    Content="📂  File Organizer"
-                                    Click="NavOrganizer_Click"/>
+
+                            <TextBlock Text="PERFORMANCE"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="10" FontWeight="Bold"
+                                       Margin="20,16,0,8"/>
+
                             <Button x:Name="NavMemory"
                                     Style="{StaticResource NavButtonStyle}"
                                     Content="⚡  Memory"
@@ -210,10 +222,10 @@
                                     Style="{StaticResource NavButtonStyle}"
                                     Content="🌐  Network"
                                     Click="NavNetwork_Click"/>
-                            <Button x:Name="NavDrivers"
+                            <Button x:Name="NavGameOptimizer"
                                     Style="{StaticResource NavButtonStyle}"
-                                    Content="🔧  Drivers"
-                                    Click="NavDrivers_Click"/>
+                                    Content="🎮  Game Optimizer"
+                                    Click="NavGameOptimizer_Click"/>
                         </StackPanel>
 
                         <!-- Bottom: Theme toggle -->

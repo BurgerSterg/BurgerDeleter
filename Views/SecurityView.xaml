@@ -1,0 +1,327 @@
+<Page x:Class="BurgerDeleter.Views.SecurityView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource BackgroundBrush}"
+      Title="Security Scan"
+      Loaded="Page_Loaded">
+
+    <Page.Resources>
+        <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
+
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="28,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="b" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{DynamicResource SurfaceElevatedBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="b" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16,14"/>
+        </Style>
+
+        <Style x:Key="CardLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="CardValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="CardSub" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,28,32,32">
+
+            <!-- ===== HEADER ===== -->
+            <TextBlock Text="Security Scan"
+                       FontSize="26" FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <TextBlock Text="Microsoft Defender and Malwarebytes, run together in one scan."
+                       FontSize="13"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="0,6,0,20"/>
+
+            <!-- ===== STATUS CARDS ===== -->
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="REAL-TIME PROTECTION" Style="{StaticResource CardLabel}"/>
+                        <TextBlock x:Name="RtValue" Text="—" Style="{StaticResource CardValue}"/>
+                        <TextBlock x:Name="RtSub" Style="{StaticResource CardSub}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="DEFINITIONS" Style="{StaticResource CardLabel}"/>
+                        <TextBlock x:Name="SigValue" Text="—" Style="{StaticResource CardValue}"/>
+                        <TextBlock x:Name="SigSub" Style="{StaticResource CardSub}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="4" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="LAST SCAN" Style="{StaticResource CardLabel}"/>
+                        <TextBlock x:Name="ScanValue" Text="—" Style="{StaticResource CardValue}"/>
+                        <TextBlock x:Name="ScanSub" Style="{StaticResource CardSub}"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="6" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="INSTALLED ANTIVIRUS" Style="{StaticResource CardLabel}"/>
+                        <ItemsControl x:Name="AvList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontSize="12" TextWrapping="Wrap" Margin="0,0,0,3"
+                                               Foreground="{DynamicResource TextPrimaryBrush}">
+                                        <Run Text="{Binding Name, Mode=OneWay}" FontWeight="SemiBold"/>
+                                        <Run Text="{Binding StateLabel, Mode=OneWay}"
+                                             Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ===== ENGINES ===== -->
+            <TextBlock Text="SCAN ENGINES" FontSize="11" FontWeight="Bold"
+                       Foreground="{DynamicResource TextMutedBrush}" Margin="0,4,0,10"/>
+
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Defender -->
+                <Border Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <CheckBox x:Name="UseDefender" IsChecked="True"
+                                  FontSize="14" FontWeight="Bold"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Content="🛡  Microsoft Defender"/>
+                        <TextBlock Text="Viruses, trojans, ransomware, spyware."
+                                   Style="{StaticResource CardSub}" Margin="22,4,0,10"/>
+                        <StackPanel Margin="22,0,0,0">
+                            <RadioButton x:Name="QuickRadio" GroupName="ScanType" IsChecked="True"
+                                         Content="Quick scan  (~5 min)" Margin="0,0,0,4"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <RadioButton x:Name="FullRadio" GroupName="ScanType"
+                                         Content="Full scan  (can take an hour+)" Margin="0,0,0,4"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="CustomRadio" GroupName="ScanType"
+                                             Content="Folder:" VerticalAlignment="Center"
+                                             Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <Button Style="{StaticResource SecondaryBtn}" Content="Browse…"
+                                        Padding="8,2" Margin="8,0,0,0" Click="Browse_Click"/>
+                            </StackPanel>
+                            <TextBlock x:Name="CustomPathText" Style="{StaticResource CardSub}"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                        <Button x:Name="UpdateSigBtn" Style="{StaticResource SecondaryBtn}"
+                                Content="Update definitions" HorizontalAlignment="Left"
+                                Margin="22,12,0,0" Click="UpdateSignatures_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- AdwCleaner -->
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <CheckBox x:Name="UseAdw" IsChecked="True"
+                                  FontSize="14" FontWeight="Bold"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Content="🧹  Malwarebytes AdwCleaner"/>
+                        <TextBlock Text="Adware, PUPs, toolbars, browser hijackers. Free, portable, by Malwarebytes."
+                                   Style="{StaticResource CardSub}" Margin="22,4,0,10"/>
+                        <TextBlock x:Name="AdwStatus" Style="{StaticResource CardSub}" Margin="22,0,0,0"/>
+                        <StackPanel Orientation="Horizontal" Margin="22,12,0,0">
+                            <Button x:Name="AdwDownloadBtn" Style="{StaticResource SecondaryBtn}"
+                                    Content="Download (~10 MB)" Click="AdwDownload_Click"/>
+                            <Button x:Name="AdwLogsBtn" Style="{StaticResource SecondaryBtn}"
+                                    Content="Open reports" Margin="8,0,0,0" Click="AdwLogs_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Malwarebytes -->
+                <Border Grid.Column="4" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="🔷  Malwarebytes" FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Deep malware Threat Scan. Malwarebytes doesn't allow other apps to start its scans, so it opens in its own window."
+                                   Style="{StaticResource CardSub}" Margin="0,4,0,10"/>
+                        <TextBlock x:Name="MbStatus" Style="{StaticResource CardSub}"/>
+                        <Button x:Name="MbOpenBtn" Style="{StaticResource SecondaryBtn}"
+                                Content="Open Malwarebytes" HorizontalAlignment="Left"
+                                Margin="0,12,0,0" Click="MbOpen_Click"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ===== RUN ===== -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Button x:Name="StartBtn" Style="{StaticResource PrimaryBtn}"
+                        Content="Start Scan" Click="Start_Click"/>
+                <Button x:Name="CancelBtn" Style="{StaticResource SecondaryBtn}"
+                        Content="Cancel" Padding="18,10" Margin="10,0,0,0"
+                        Visibility="Collapsed" Click="Cancel_Click"/>
+                <TextBlock x:Name="RunStatus" FontSize="13" VerticalAlignment="Center" Margin="16,0,0,0"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </StackPanel>
+
+            <ProgressBar x:Name="ScanProgress" Height="3" IsIndeterminate="True" Visibility="Collapsed"
+                         Foreground="{DynamicResource AccentBrush}"
+                         Background="{DynamicResource SurfaceElevatedBrush}" BorderThickness="0"
+                         Margin="0,0,0,8"/>
+
+            <Border Background="#0B0B0B" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="8" Padding="12,10" Margin="0,0,0,20">
+                <TextBox x:Name="LogBox"
+                         Height="140"
+                         IsReadOnly="True"
+                         Background="Transparent" BorderThickness="0"
+                         Foreground="#9CA3AF"
+                         FontFamily="{StaticResource MonoFont}" FontSize="11"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         Text="Ready."/>
+            </Border>
+
+            <!-- ===== THREATS ===== -->
+            <Grid Margin="0,0,0,10">
+                <TextBlock x:Name="ThreatHeader" Text="DEFENDER THREAT HISTORY" FontSize="11" FontWeight="Bold"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="RemoveDefenderBtn" Style="{StaticResource SecondaryBtn}"
+                            Content="Remove Defender threats" Visibility="Collapsed"
+                            Click="RemoveDefender_Click"/>
+                    <Button x:Name="CleanAdwBtn" Style="{StaticResource SecondaryBtn}"
+                            Content="Quarantine with AdwCleaner" Margin="8,0,0,0" Visibility="Collapsed"
+                            Click="CleanAdw_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <TextBlock x:Name="NoThreatsText" Text="No threats on record."
+                       FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+
+            <ItemsControl x:Name="ThreatList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource SurfaceBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="8" Padding="14,10" Margin="0,0,0,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Source}" FontSize="10" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <TextBlock Text="{Binding Severity}" FontSize="12" FontWeight="Bold"
+                                               Foreground="{DynamicResource WarningBrush}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="8,0">
+                                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Location}" FontSize="11"
+                                               FontFamily="{StaticResource MonoFont}"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                    <TextBlock Text="{Binding Status}" FontSize="12" FontWeight="SemiBold"
+                                               HorizontalAlignment="Right"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding DetectedDisplay}" FontSize="11"
+                                               HorizontalAlignment="Right"
+                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

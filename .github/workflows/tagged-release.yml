@@ -33,6 +33,7 @@ jobs:
           "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "Release version: $version"
 
+      # Build output: ./publish/BurgerDeleter.exe — the app installs to %LocalAppData%\BurgerDeleter on first run.
       - name: Publish
         run: >
           dotnet publish BurgerDeleter.csproj

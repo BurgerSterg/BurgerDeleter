@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Security.Principal;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,16 +14,16 @@ namespace BurgerDeleter
 {
     public partial class MainWindow : Window
     {
-        private readonly HomeView          _homeView          = new();
-        private readonly ScanView          _scanView          = new();
-        private readonly GamesView         _gamesView         = new();
-        private readonly RecommendedView   _recommendedView   = new();
-        private readonly UninstallerView   _uninstallerView   = new();
-        private readonly FileOrganizerView _fileOrganizerView = new();
-        private readonly MemoryView        _memoryView        = new();
-        private readonly StartupView       _startupView       = new();
-        private readonly NetworkView       _networkView       = new();
-        private readonly DriverView        _driverView        = new();
+        private readonly HomeView          _homeView           = new();
+        private readonly ScanView          _scanView           = new();
+        private readonly GamesView         _gamesView          = new();
+        private readonly UninstallerView   _uninstallerView    = new();
+        private readonly MemoryView        _memoryView         = new();
+        private readonly StartupView       _startupView        = new();
+        private readonly NetworkView       _networkView        = new();
+        private readonly GameOptimizerView _gameOptimizerView  = new();
+        private readonly HealthView        _healthView         = new();
+        private readonly SecurityView      _securityView       = new();
 
         public MainWindow()
         {
@@ -32,6 +33,17 @@ namespace BurgerDeleter
             CheckAdminStatus();
 
             _homeView.ScanRequested += () => NavigateTo(NavScan, _scanView);
+            _healthView.NavigateRequested += fix =>
+            {
+                switch (fix)
+                {
+                    case HealthFix.OpenScan:          NavScan_Click(this, new RoutedEventArgs()); break;
+                    case HealthFix.OpenStartup:       NavStartup_Click(this, new RoutedEventArgs()); break;
+                    case HealthFix.OpenSecurity:      NavSecurity_Click(this, new RoutedEventArgs()); break;
+                    case HealthFix.OpenMemory:        NavMemory_Click(this, new RoutedEventArgs()); break;
+                    case HealthFix.OpenGameOptimizer: NavGameOptimizer_Click(this, new RoutedEventArgs()); break;
+                }
+            };
             AppEvents.DriveStatsChanged += () => Dispatcher.Invoke(LoadDriveInfo);
 
             // Broadcast to all subscribers whenever the window appears / disappears
@@ -61,20 +73,20 @@ namespace BurgerDeleter
         private void NavHome_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavHome, _homeView);
 
+        private void NavHealth_Click(object sender, RoutedEventArgs e)
+            => NavigateTo(NavHealth, _healthView);
+
+        private void NavSecurity_Click(object sender, RoutedEventArgs e)
+            => NavigateTo(NavSecurity, _securityView);
+
         private void NavScan_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavScan, _scanView);
 
         private void NavGames_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavGames, _gamesView);
 
-        private void NavRecommended_Click(object sender, RoutedEventArgs e)
-            => NavigateTo(NavRecommended, _recommendedView);
-
         private void NavUninstaller_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavUninstaller, _uninstallerView);
-
-        private void NavOrganizer_Click(object sender, RoutedEventArgs e)
-            => NavigateTo(NavOrganizer, _fileOrganizerView);
 
         private void NavMemory_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavMemory, _memoryView);
@@ -85,8 +97,11 @@ namespace BurgerDeleter
         private void NavNetwork_Click(object sender, RoutedEventArgs e)
             => NavigateTo(NavNetwork, _networkView);
 
-        private void NavDrivers_Click(object sender, RoutedEventArgs e)
-            => NavigateTo(NavDrivers, _driverView);
+        private void NavGameOptimizer_Click(object sender, RoutedEventArgs e)
+        {
+            NavigateTo(NavGameOptimizer, _gameOptimizerView);
+            _gameOptimizerView.OnNavigatedTo();
+        }
 
         // ===== AUTO-UPDATE CHECK =====
 
@@ -170,6 +185,10 @@ namespace BurgerDeleter
 
         private void AdminBadge_Click(object sender, MouseButtonEventArgs e)
         {
+            // The badge sits inside the title bar: stop the press bubbling up to DragMove,
+            // which captures the mouse and would swallow the click.
+            e.Handled = true;
+
             using var identity = WindowsIdentity.GetCurrent();
             bool isAdmin = new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
             if (isAdmin) return;
@@ -184,9 +203,14 @@ namespace BurgerDeleter
 
             try
             {
-                var exe = Process.GetCurrentProcess().MainModule?.FileName
+                var exe = UpdateService.CanonicalExecutablePath;
+                if (!File.Exists(exe))
+                {
+                    exe = Process.GetCurrentProcess().MainModule?.FileName
                           ?? throw new InvalidOperationException("Cannot determine executable path.");
+                }
                 Process.Start(new ProcessStartInfo(exe) { Verb = "runas", UseShellExecute = true });
+                App.AllowClose = true; // otherwise OnClosing just hides us to the tray
                 Application.Current.Shutdown();
             }
             catch (Exception ex)

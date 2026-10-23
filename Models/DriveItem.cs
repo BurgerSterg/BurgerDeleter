@@ -33,9 +33,6 @@ namespace BurgerDeleter.Models
         public SafetyLevel SafetyLevel { get; set; } = SafetyLevel.Safe;
         public string SafetyReason { get; set; } = "No critical dependencies detected.";
 
-        public string? RecommendationReason   { get; set; }
-        public string? RecommendationCategory { get; set; }
-
         public DateTime LastModified { get; set; }
 
         // Display label e.g. "Steam" "Epic Games"

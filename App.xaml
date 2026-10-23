@@ -7,6 +7,8 @@
            <ResourceDictionary.MergedDictionaries>
                <!-- Active theme gets swapped here at runtime -->
                <ResourceDictionary Source="Themes/DarkTheme.xaml"/>
+               <!-- Shared control styles (stays at index 1 across theme swaps) -->
+               <ResourceDictionary Source="Themes/Controls.xaml"/>
            </ResourceDictionary.MergedDictionaries>
        </ResourceDictionary>
    </Application.Resources>

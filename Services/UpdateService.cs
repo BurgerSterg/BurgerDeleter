@@ -26,6 +26,43 @@ namespace BurgerDeleter.Services
     {
         private const string ApiUrl = "https://api.github.com/repos/BurgerSterg/BurgerDeleter/releases/latest";
 
+        /// <summary><c>%LocalAppData%\BurgerDeleter</c></summary>
+        public static string InstallDirectory =>
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "BurgerDeleter");
+
+        /// <summary>Stable install path (matches first-run copy and updater script).</summary>
+        public static string InstalledExePath =>
+            Path.Combine(InstallDirectory, "BurgerDeleter.exe");
+
+        /// <summary>Download staging file for in-place swap after exit.</summary>
+        public static string PendingUpdateExePath =>
+            Path.Combine(InstallDirectory, "BurgerDeleter_new.exe");
+
+        static string UpdateScriptPath =>
+            Path.Combine(InstallDirectory, "burger_update.ps1");
+
+        /// <summary>
+        /// Target exe derived from <see cref="AppDomain.CurrentDomain.BaseDirectory"/> — not the
+        /// running module path — so updates don’t depend on the locked in-memory image path.
+        /// </summary>
+        public static string CanonicalExecutablePath =>
+            Path.GetFullPath(
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BurgerDeleter.exe"));
+
+        /// <summary>PowerShell helper: copy staged exe over install, launch, self-delete.</summary>
+        private static readonly string UpdateScriptBody =
+            "Start-Sleep -Seconds 4\r\n" +
+            "$target = \"$env:LOCALAPPDATA\\BurgerDeleter\\BurgerDeleter.exe\"\r\n" +
+            "$new = \"$env:LOCALAPPDATA\\BurgerDeleter\\BurgerDeleter_new.exe\"\r\n" +
+            "if (Test-Path $new) {\r\n" +
+            "    Copy-Item -Path $new -Destination $target -Force\r\n" +
+            "    Remove-Item -Path $new -Force\r\n" +
+            "    Start-Process -FilePath $target\r\n" +
+            "}\r\n" +
+            "Remove-Item -Path $MyInvocation.MyCommand.Path -Force\r\n";
+
         /// <summary>
         /// Fetches the latest GitHub release and compares it to the running assembly
         /// version.  Returns an <see cref="UpdateInfo"/> if a newer version is available,
@@ -99,33 +136,23 @@ namespace BurgerDeleter.Services
         }
 
         /// <summary>
-        /// Writes <c>%TEMP%\burger_update.bat</c>, which waits for this process to exit,
-        /// moves <c>%TEMP%\BurgerDeleter_update.exe</c> over the running exe, then starts it.
-        /// Launch via <see cref="Process.Start(ProcessStartInfo)"/>; the app should exit immediately after.
+        /// Writes <c>burger_update.ps1</c> under <see cref="InstallDirectory"/> and starts it hidden.
+        /// The app must exit immediately so the script can copy <see cref="PendingUpdateExePath"/>
+        /// over <see cref="InstalledExePath"/> without file-lock issues.
         /// </summary>
-        public static void StartSelfUpdateReplacerBatch()
+        public static void LaunchPendingUpdateAndExit()
         {
-            string targetExe = Process.GetCurrentProcess().MainModule?.FileName
-                ?? throw new InvalidOperationException("Cannot resolve current executable path.");
+            Directory.CreateDirectory(InstallDirectory);
 
-            string batchPath = Path.Combine(Path.GetTempPath(), "burger_update.bat");
-            File.WriteAllLines(
-                batchPath,
-                new[]
-                {
-                    "@echo off",
-                    "timeout /t 2 /nobreak > nul",
-                    @$"move /y ""%TEMP%\BurgerDeleter_update.exe"" ""{targetExe}""",
-                    @$"start """" ""{targetExe}""",
-                    @"del ""%~f0""",
-                });
+            File.WriteAllText(UpdateScriptPath, UpdateScriptBody);
 
-            Process.Start(
-                new ProcessStartInfo("cmd.exe", $"/c \"{batchPath}\"")
-                {
-                    CreateNoWindow  = true,
-                    UseShellExecute = false,
-                });
+            Process.Start(new ProcessStartInfo
+            {
+                FileName        = "powershell.exe",
+                Arguments       = $"-ExecutionPolicy Bypass -WindowStyle Hidden -File \"{UpdateScriptPath}\"",
+                UseShellExecute = false,
+                CreateNoWindow  = true,
+            });
         }
     }
 }
